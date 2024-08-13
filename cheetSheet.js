@@ -213,4 +213,7 @@ app.set('views', 'views'); //вказуємо шлях до папки з шаб
 // EJS іде з коробки
 app.set('view engine', 'ejs');
 app.set('views', 'views'); //вказуємо шлях до папки з шаблонами
-// .ejs розширення файлів 
+// .ejs розширення файлів
+
+// MVC
+https://developer.mozilla.org/en-US/docs/Glossary/MVC
