@@ -244,5 +244,71 @@ db.execute('INSERT INTO products (title, price, imageUrl, description) VALUES (?
 //викликаємо метод execute() для виконання запитів до бази даних
 db.execute('Select * FROM products WHERE id = ?', [id]) //вказуємо параметри для запиту в масиві [id] - параметр
 
+// Sequelize це ORM (Object-Relational Mapping) для Node.js, який дозволяє вам взаємодіяти з базою даних за допомогою об'єктів.
+// https://sequelize.org/master/manual/getting-started.html
+// npm install --save sequelize
+// npm install --save mysql2 //якщо не встановлено
+// у файлі db.js підключаємо модуль sequelize
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('node-complete', 'root', '423006Ce!', {
+    dialect: 'mysql',
+    host: 'localhost',
+});
+module.exports = sequelize; //повертаємо об'єкт sequelize
+// ініціалізуємо моделі у відповідних файлах
+const User = sequelize.define('user', {
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+    },
+    name: Sequelize.STRING,
+    email: Sequelize.STRING
+});
+const Product = sequelize.define('product', { // де product - назва таблиці
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+    },
+});
+//викликаємо метод findAll() для виконання запитів до бази даних
+Product.findAll() // {where: {id: 1}} - вказуємо параметри для запиту
+Product.findByPk(id) //пошук по первинному ключу
+    .then(product => {
+        console.log(product); // виконуємо дії з результатом
+        product.save(); //зберігаємо дані в базі даних як новий запис або оновлюємо існуючий
+        product.destroy(); //видаляємо запис з бази даних
+    })
+    .catch()
+// в app.js створюємо з'єднання з базою даних
+const sequelize = require('./util/database');
+// вказуємо, що моделі User і Product використовують з'єднання з базою даних
+const Product = require('./models/product');
+const User = require('./models/user');
+const Cart = require('./models/cart');
+Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' }); //зв'язок один до багатьох
+User.hasMany(Product); //зв'язок багато до одного
+User.hasOne(Cart); //зв'язок один до одного
+//Cart.belongsTo(User); //зв'язок один до одного.
+Cart.belongsToMany(Product, { through: CartItem }); //зв'язок багато до багатьох
+Product.belongsToMany(Cart, { through: CartItem });
+User.createProduct() //створюємо метод для створення продукту для користувача
 
+sequelize
+    .sync() //створює таблиці в базі даних
+    // .sync({ force: true }) //видаляє таблиці і створює нові. використовувати обережно на продакшені
+    .then(result => {
+        console.log(result);
+    })
+    .catch(err => {
+        console.log(err);
+    });
 
+//
+// exports.getOrders = (req, res, next) => {
+//     req.user
+//         .getOrders({include: ['products']}) // products - назва моделі в моделі Order (Order.belongsToMany(Product, { through: OrderItem }))
+// таким чином ми отримуємо всі замовлення користувача з продуктами
