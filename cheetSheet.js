@@ -216,4 +216,33 @@ app.set('views', 'views'); //вказуємо шлях до папки з шаб
 // .ejs розширення файлів
 
 // MVC
-https://developer.mozilla.org/en-US/docs/Glossary/MVC
+// https://developer.mozilla.org/en-US/docs/Glossary/MVC
+
+// Routing
+// https://expressjs.com/en/guide/routing.html
+
+
+/// Database connection
+// https://www.w3schools.com/sql/
+// https://github.com/sidorares/node-mysql2
+
+// npm install --save mysql2
+// створюємо файл db.js
+const mysql = require('mysql2'); //підключаємо модуль mysql
+const pool = mysql.createPool({ //створюємо пул з'єднань з базою даних
+    host: 'localhost', // host name or ip address
+    user: 'root', // default user name
+    database: 'node-complete', //назва бази даних яку ми створили в mysql workbench
+    password: '423006Ce!',
+});
+module.exports = pool.promise(); //повертаємо об'єкт, який містить метод promise()
+//підключаємо модуль db.js в основний файл
+const db = require('../util/database');
+db.execute('SElECT * FROM products').then().catch() //викликаємо метод execute() для виконання запитів до бази даних
+// * - означає всі поля, можна вказати конкретні поля через кому
+db.execute('INSERT INTO products (title, price, imageUrl, description) VALUES (?, ?, ?, ?)', [title, price, imageUrl, description])
+//викликаємо метод execute() для виконання запитів до бази даних
+db.execute('Select * FROM products WHERE id = ?', [id]) //вказуємо параметри для запиту в масиві [id] - параметр
+
+
+
