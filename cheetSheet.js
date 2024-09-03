@@ -312,3 +312,116 @@ sequelize
 //     req.user
 //         .getOrders({include: ['products']}) // products - назва моделі в моделі Order (Order.belongsToMany(Product, { through: OrderItem }))
 // таким чином ми отримуємо всі замовлення користувача з продуктами
+
+////////////////////
+
+// MongoDB
+// https://www.mongodb.com/what-is-mongodb //документація
+// https://www.mongodb.com/try/download/community //скачати MongoDB локально або використовувати MongoDB Atlas
+// https://www.mongodb.com/try/start/commerce //створити базу даних
+// створити новий проект і кластер
+// створити нового користувача для доступу до бази з роллю readWrite
+// налаштувати IP адреси для доступу до бази даних
+// https://www.mongodb.com/docs/manual/crud/ //операції CRUD (Create, Read, Update, Delete)
+
+// підключення до MongoDB з Node.js
+// npm install --save mongodb
+const mongodb = require('mongodb');
+const {static} = require("express");
+const MongoClient = mongodb.MongoClient;
+// url - адреса бази даних з користувачем і паролем для доступу до бази даних з роллю readWrite
+MongoClient.connect(
+    'mongodb+srv://ReadWrite:111111Qq@node-app.bw0qh.mongodb.net/?retryWrites=true&w=majority&appName=Node-app')
+    .then(client => {
+        console.log('Connected!');
+        client.close();
+    })
+    .catch(err => {
+        console.log(err);
+    });
+// або з колбеком
+let _db;
+const mongoConnect = callback => { //функція підключення до бази даних
+    MongoClient.connect(
+        'mongodb+srv://ReadWrite:111111Qq@node-app.bw0qh.mongodb.net/?retryWrites=true&w=majority&appName=Node-app'
+    )
+        .then(client => {
+            console.log('Connected!');
+            _db = client.db(); //підключаємося до бази і зберігаємо з'єднання в змінну для подальшого використання без перепідключення
+            callback(client);
+            client.close();
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    }
+
+const getDb = () => { // функція для отримання з'єднання з базою даних без перепідключення
+    if (_db) {
+        return _db;
+    }
+    throw 'No database found!';
+}
+module.exports = mongoConnect;
+
+// далі потрібно створити клас який буде взаємодіяти з базою даних
+// models/product.js
+const getDb = require('../util/database').getDb; //підключаємо функцію для отримання з'єднання з базою даних
+const db = getDb(); //отримуємо з'єднання з базою даних
+class Product {
+    constructor(title, price, imageUrl, description) {
+        this.title = title;
+        this.price = price;
+        this.imageUrl = imageUrl;
+        this.description = description;
+    }
+    save() {
+        return db.collection('products').insertOne(this); // зберігаємо дані в базі даних
+        // return db.collection('products').insertMany([this]); // зберігаємо багато записів в базі даних
+    }
+}
+
+// app.js
+const mongoConnect = require('./util/database').mongoConnect;
+mongoConnect(client => { // підключаємося до бази даних і запускаємо сервер
+    console.log(client);
+    app.listen(3000);
+});
+
+// запит на отримання даних з бази даних
+static fetchAll() {
+    const db = getDb();
+    return db.collection('products')
+        .find()
+        .toArray(); // коли знаємо що там array. Краще працювати з пагінацією
+}
+
+// робота з id
+const mongodb = require('mongodb');
+const ObjectId = mongodb.ObjectId;
+const id = new ObjectId(this._id); // конвертуємо id в ObjectId. Формат в якому зберігається id в MongoDB
+
+///////////////
+//Compass це адмінка для MongoDB яка дозволяє візуально працювати з базою даних
+// https://www.mongodb.com/products/tools/compass
+// після встановлення відкриваємо його і підключаємося до бази даних
+// вставляємо стрічку підключення яку ми використовуємо в нашому проекті (у файлі database.js або на сайті MongoDB)
+// якщо її скоіювати а потім перезапустити Compass то вона автоматично підключиться до бази даних
+
+const db = getDb();
+return db
+    .collection('products')
+    .find({ _id: { $in: productIds } }) // $in - оператор, який дозволяє вибрати декілька значень
+
+
+/////////////// Useful resource:
+//
+//     MongoDB Official Docs:
+//     https://docs.mongodb.com/manual/core/security-encryption-at-rest/https://docs.mongodb.com/manual/
+//
+//     SQL vs NoSQL:
+//     https://academind.com/learn/web-dev/sql-vs-nosql/
+//
+//     Learn more about MongoDB:
+//     https://academind.com/learn/mongodb
+
